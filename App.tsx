@@ -5,24 +5,39 @@
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import React from 'react';
+import { RootNavigator } from './src/app/navigation/RootNavigator';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider } from 'react-native-paper';
+import { CatalogProvider } from './src/feature/Catalog/context/CatalogContext';
+import { CatalogService } from './src/feature/Catalog/api/catalog.api';
+import { CatalogInfoProvider } from './src/feature/catalogInfo/context/CatalogInfoContext';
+import { CatalogInfoService } from './src/feature/catalogInfo/api/catalog.api';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+const queryClient = new QueryClient();
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
-    </View>
-  );
+const catalogService = new CatalogService();
+const catalogInfoService = new CatalogInfoService();
+
+if (__DEV__) {
+  require('./ReactotronConfig');
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+function App() {
+  return (
+    <Provider>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <CatalogInfoProvider service={catalogInfoService}>
+            <CatalogProvider service={catalogService}>
+              <RootNavigator />
+            </CatalogProvider>
+          </CatalogInfoProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </Provider>
+  );
+}
 
 export default App;

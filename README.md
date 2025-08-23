@@ -1,97 +1,137 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🎬 IdilioTV
 
-# Getting Started
+Una aplicación móvil de streaming desarrollada en React Native que permite a los usuarios explorar y ver contenido multimedia de manera intuitiva y elegante.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 📱 Características
 
-## Step 1: Start Metro
+- **Catálogo de Shows**: Navegación por categorías y géneros
+- **Gestión de Temporadas**: Organización por temporadas y episodios
+- **Autenticación Segura**: Sistema de login con Supabase
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 🚀 Tecnologías Utilizadas
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- **Frontend**: React Native 0.80.2
+- **Navegación**: React Navigation 7
+- **Estado**: React Query (TanStack Query)
+- **Base de Datos**: Supabase
+- **UI Components**: React Native Paper
+- **Autenticación**: Supabase Auth
+- **Gestión de Estado**: React Context + Hooks
 
-```sh
-# Using npm
-npm start
+## 📋 Requisitos Previos
 
-# OR using Yarn
-yarn start
+- Node.js >= 20
+
+## 🛠️ Instalación
+
+### 1. Instalar Dependencias
+
+```bash
+yarn install
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## 🏃‍♂️ Ejecutar la Aplicación
 
 ### Android
 
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
+```bash
 yarn android
 ```
 
-### iOS
+## Funciones de SQL implementadas.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```sql
+CREATE TABLE public.categories (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name character varying,
+  CONSTRAINT categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.episodes (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  season_id bigint NOT NULL,
+  episode_number integer NOT NULL,
+  name character varying NOT NULL,
+  synopsis text,
+  air_date date,
+  duration_minutes integer,
+  poster_url text,
+  CONSTRAINT episodes_pkey PRIMARY KEY (id),
+  CONSTRAINT episodes_season_id_fkey FOREIGN KEY (season_id) REFERENCES public.seasons(id)
+);
+CREATE TABLE public.seasons (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  title_id bigint NOT NULL,
+  season_number integer NOT NULL,
+  release_year integer,
+  CONSTRAINT seasons_pkey PRIMARY KEY (id),
+  CONSTRAINT seasons_title_id_fkey FOREIGN KEY (title_id) REFERENCES public.titles(id)
+);
+CREATE TABLE public.titles (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  title text NOT NULL,
+  synopsis text NOT NULL,
+  poster_url text NOT NULL,
+  category_id bigint NOT NULL,
+  main boolean UNIQUE,
+  type_id bigint,
+  release_year numeric,
+  CONSTRAINT titles_pkey PRIMARY KEY (id),
+  CONSTRAINT shows_categorí_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id),
+  CONSTRAINT titles_type_id_fkey FOREIGN KEY (type_id) REFERENCES public.typesTitles(id)
+);
+CREATE TABLE public.typesTitles (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name text NOT NULL UNIQUE,
+  CONSTRAINT typesTitles_pkey PRIMARY KEY (id)
+);
 ```
 
-Then, and every time you update your native dependencies, run:
+## Decisiones técnicas (1–2 párrafos).
 
-```sh
-bundle exec pod install
+- Estructura feature-first: organizar el código por funcionalidades del producto (Catálogo, CatalogInfo, Auth, etc.)
+- Inyección de dependencias vía Context: definir interfaces de servicio y proveer implementaciones intercambiables (HTTP / mocks) para desacoplar la UI de los módulos de bajo nivel y posibilitar tests con servicios mockeables.
+- Gestión de datos con React Query: manejo de estado remoto, caché, políticas de retry para una UX fluida.
+- TypeScript estricto: aumentar la seguridad y reducir errores en tiempo de compilación
+- Reactotron: inspección de networking, logs y performance, activado solo en entornos de dev.
+- Hooks reutilizables y predecibles: responsabilidades claras, con nombres consistentes (use…)
+- almacenamiento de imagenes en bucket de supabase publico
+
+## Prompts usados en IA.
+
+    uso de cursor, trae y chatgpt
+
+## Qué harías a continuación si tuvieras más tiempo.
+
+- implementacion de variables de entorno
+- pruebas unitarias y de integracion con jest y react Testing Library
+- pantalla de splash
+- modificacion de la bd de multiples categorias por shows
+- modificacion de la bd para agregars shows sin ninguna temporada (peliculas)
+- implementacion de vistas en la bd para una mejor extraccion de datos
+- implementacion de validaciones de insert en la bd mediante triggers
+- mejorar el tipado en la navegacion
+
+## 📁 Estructura del Proyecto
+
+```
+IdilioTV/
+├── src/
+│   ├── app/
+│   │   └── navigation/          # Navegación principal
+│   ├── feature/
+│   │   ├── auth/               # Autenticación
+│   │   ├── catalog/            # Catálogo de shows
+│   │   ├── catalogInfo/        # Información detallada
+│   │   └── SettingsScreen/     # Configuración
+│   ├── shared/
+│   │   ├── components/         # Componentes compartidos
+│   │   └── hooks/              # Hooks personalizados
+│   └── assets/                 # Imágenes y recursos
+├── android/                     # Configuración Android
+├── ios/                        # Configuración iOS
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+**Desarrollado con ❤️ por el equipo de EduTel**
