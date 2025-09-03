@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import HorizontalCarousel from './HorizontalCarousel';
 import { Titles } from '../api/catalog.api';
+import { memo } from 'react';
 
 type RailProps = {
   title: string;
@@ -8,11 +9,7 @@ type RailProps = {
   onPressItem: (id: string) => void;
 };
 
-export default function VeriticallCarousel({
-  title,
-  items,
-  onPressItem,
-}: RailProps) {
+function VeriticallCarousel({ title, items, onPressItem }: RailProps) {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -25,6 +22,8 @@ export default function VeriticallCarousel({
     </View>
   );
 }
+
+export default memo(VeriticallCarousel);
 
 const styles = StyleSheet.create({
   container: {

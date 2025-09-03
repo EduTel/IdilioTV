@@ -1,26 +1,37 @@
+import { useCallback } from 'react';
 import { FlatList, Image, Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Titles } from '../api/catalog.api';
 
+type HorizontalCarouselProps = {
+  data: Titles[];
+  onPress: (id: string) => void;
+};
+
 export default function HorizontalCarousel({
   data,
   onPress,
-}: {
-  data: Titles[];
-  onPress: (id: string) => void;
-}) {
+}: HorizontalCarouselProps) {
+  const keyExtractor = useCallback((i: Titles) => i.id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Titles }) => (
+      <Pressable onPress={() => onPress(item.id)} style={styles.pressable}>
+        <Image source={{ uri: item.poster_url }} style={styles.image} />
+        <Text style={styles.title}>{item.title}</Text>
+      </Pressable>
+    ),
+    [onPress],
+  );
+
   return (
     <FlatList
       horizontal
       data={data}
-      keyExtractor={i => i.id}
+      keyExtractor={keyExtractor}
       showsHorizontalScrollIndicator={false}
-      renderItem={({ item }) => (
-        <Pressable onPress={() => onPress(item.id)} style={styles.pressable}>
-          <Image source={{ uri: item.poster_url }} style={styles.image} />
-          <Text style={styles.title}>{item.title}</Text>
-        </Pressable>
-      )}
+      renderItem={renderItem}
+      maxToRenderPerBatch={3}
     />
   );
 }

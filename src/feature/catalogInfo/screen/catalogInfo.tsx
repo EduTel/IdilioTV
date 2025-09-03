@@ -22,7 +22,7 @@ import { Episode, Season } from '../api/ICatalogInfoService';
 
 const SeparatorComponent = memo(() => <View style={styles.separator} />);
 
-const renderEpisodeItem = ({ item }: { item: Episode }) => (
+const EpisodeItem = ({ item }: { item: Episode }) => (
   <Pressable style={styles.episodeContainer}>
     <Image
       source={{ uri: item.poster_url }}
@@ -40,6 +40,8 @@ const renderEpisodeItem = ({ item }: { item: Episode }) => (
   </Pressable>
 );
 
+const EpisodeItemMemo = memo(EpisodeItem);
+
 const SeasonRow = memo(
   ({ item, onSelect }: { item: Season; onSelect: (id: string) => void }) => (
     <Pressable style={styles.seasonItem} onPress={() => onSelect(item.id)}>
@@ -47,6 +49,56 @@ const SeasonRow = memo(
       <Text style={styles.seasonYear}>{item.release_year}</Text>
     </Pressable>
   ),
+);
+
+const SeasonSelectorModal = memo(
+  ({
+    visible,
+    onDismiss,
+    seasons,
+    onSelectSeason,
+  }: {
+    visible: boolean;
+    onDismiss: () => void;
+    seasons: Season[] | undefined;
+    onSelectSeason: (id: string) => void;
+  }) => {
+    const renderSeasonItem = useCallback(
+      ({ item }: { item: Season }) => (
+        <SeasonRow item={item} onSelect={onSelectSeason} />
+      ),
+      [onSelectSeason],
+    );
+
+    const keyExtractorSeason = useCallback(
+      (item: Season) => 'selectedSeason:' + item.id,
+      [],
+    );
+
+    return (
+      <Portal>
+        <Modal
+          visible={visible}
+          onDismiss={onDismiss}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <View style={styles.modalHeader}>
+            <Text style={styles.text}>Seleccionar Temporada</Text>
+            <Button onPress={onDismiss} mode="text">
+              Cerrar
+            </Button>
+          </View>
+          <FlatList
+            data={seasons}
+            renderItem={renderSeasonItem}
+            keyExtractor={keyExtractorSeason}
+            contentContainerStyle={styles.seasonsList}
+            showsVerticalScrollIndicator={false}
+          />
+        </Modal>
+      </Portal>
+    );
+  },
 );
 
 const CatalogInfo = () => {
@@ -65,11 +117,14 @@ const CatalogInfo = () => {
     hideModal();
   }, []);
 
-  const renderSeasonItem = useCallback(
-    ({ item }: { item: Season }) => (
-      <SeasonRow item={item} onSelect={onSelectSeason} />
-    ),
-    [onSelectSeason],
+  const keyExtractor = useCallback(
+    (item: Episode) => 'selectedSeason:' + item.id,
+    [],
+  );
+
+  const renderEpisodeItem = useCallback(
+    ({ item }: { item: Episode }) => <EpisodeItemMemo item={item} />,
+    [],
   );
 
   if (isLoading) return <LoadingApi />;
@@ -112,35 +167,20 @@ const CatalogInfo = () => {
 
       <FlatList
         data={Episodes?.items}
-        renderItem={data => renderEpisodeItem({ item: data.item })}
-        keyExtractor={item => 'selectedSeason:' + item.id}
+        renderItem={renderEpisodeItem}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.episodesList}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={SeparatorComponent}
         initialNumToRender={5}
       />
 
-      <Portal>
-        <Modal
-          visible={visible}
-          onDismiss={hideModal}
-          contentContainerStyle={styles.modalContainer}
-        >
-          <View style={styles.modalHeader}>
-            <Text style={styles.text}>Seleccionar Temporada</Text>
-            <Button onPress={hideModal} mode="text">
-              Cerrar
-            </Button>
-          </View>
-          <FlatList
-            data={seasons?.items}
-            renderItem={renderSeasonItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.seasonsList}
-            showsVerticalScrollIndicator={false}
-          />
-        </Modal>
-      </Portal>
+      <SeasonSelectorModal
+        visible={visible}
+        onDismiss={hideModal}
+        seasons={seasons?.items}
+        onSelectSeason={onSelectSeason}
+      />
     </SafeAreaView>
   );
 };

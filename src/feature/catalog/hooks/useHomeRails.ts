@@ -37,7 +37,7 @@ export const useCatalog = () => {
   const catalogService = useCatalogService();
   const categoriesQuery = useCategories();
 
-  const showsQueries = useQueries({
+  const dataQueries = useQueries({
     queries:
       categoriesQuery.data?.map(category => ({
         queryKey: ['home-rails', category.id],
@@ -45,18 +45,12 @@ export const useCatalog = () => {
         staleTime: 60_000,
         enabled: !!categoriesQuery.data,
       })) || [],
+    combine: results => ({
+      data: results.map(r => r.data),
+      isLoading: categoriesQuery.isLoading || results.some(r => r.isLoading),
+      isError: categoriesQuery.isError || results.some(r => r.isError),
+    }),
   });
 
-  const isLoading =
-    categoriesQuery.isLoading || showsQueries.some(query => query.isLoading);
-  const isError =
-    categoriesQuery.isError || showsQueries.some(query => query.isError);
-
-  const data = showsQueries.map(query => query.data);
-
-  return {
-    data,
-    isLoading,
-    isError,
-  };
+  return dataQueries;
 };
